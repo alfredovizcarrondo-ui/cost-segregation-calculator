@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cost Segregation Savings Calculator</title>
+<style>
+:root{--navy:#0B1929;--dark-blue:#112240;--teal:#0D9488;--teal-light:#14B8A6;--amber:#F59E0B;--white:#FFFFFF;--gray-50:#F8FAFC;--gray-100:#F1F5F9;--gray-200:#E2E8F0;--gray-400:#94A3B8;--gray-500:#64748B;--gray-600:#475569;--gray-700:#334155;--gray-800:#1E293B;--red:#EF4444}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Segoe UI",system-ui,sans-serif;background:linear-gradient(135deg,#0B1929 0%,#112240 50%,#0F2D4A 100%);min-height:100vh;color:#1E293B}
+.container{max-width:1100px;margin:0 auto;padding:30px 20px 60px}
+header{text-align:center;margin-bottom:36px}
+header h1{color:#fff;font-size:28px;font-weight:700}
+header h1 span{color:#14B8A6}
+header p{color:#94A3B8;font-size:14px;margin-top:8px}
+.card{background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden}
+.card-sections{display:grid;grid-template-columns:1fr 1fr;gap:0}
+@media(max-width:768px){.card-sections{grid-template-columns:1fr}}
+.input-section{padding:36px;background:#fff;border-right:1px solid #E2E8F0}
+.results-section{padding:36px;background:#F8FAFC}
+.section-title{font-size:18px;font-weight:700;color:#112240;margin-bottom:24px;display:flex;align-items:center;gap:10px}
+.section-title .icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.section-title .icon.blue{background:#EFF6FF;color:#2563EB}
+.section-title .icon.green{background:#ECFDF5;color:#059669}
+.form-group{margin-bottom:20px}
+.form-group label{display:block;font-size:13px;font-weight:600;color:#475569;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.form-group input,.form-group select{width:100%;padding:12px 14px;border:2px solid #E2E8F0;border-radius:10px;font-size:15px;color:#1E293B;background:#fff;outline:none}
+.form-group input:focus,.form-group select:focus{border-color:#0D9488;box-shadow:0 0 0 3px rgba(13,148,136,.1)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.bonus-toggle{display:flex;align-items:center;gap:10px;padding:12px 16px;background:#FFF7ED;border:1px solid #FED7AA;border-radius:10px;margin-bottom:20px}
+.bonus-toggle label{font-size:13px;font-weight:600;color:#9A3412;margin:0;cursor:pointer}
+.bonus-toggle input[type="checkbox"]{width:18px;height:18px;accent-color:#F59E0B}
+.bonus-rate-info{font-size:11px;color:#C2410C;margin-left:auto;font-weight:600}
+.btn-calculate{width:100%;padding:14px;background:linear-gradient(135deg,#0D9488 0%,#14B8A6 100%);color:#fff;font-size:16px;font-weight:700;border:none;border-radius:10px;cursor:pointer}
+.result-hero{text-align:center;padding:28px 20px;background:linear-gradient(135deg,#0B1929 0%,#112240 100%);border-radius:14px;margin-bottom:24px}
+.result-hero .label{color:#14B8A6;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px}
+.result-hero .value{color:#fff;font-size:42px;font-weight:800}
+.result-hero .sub{color:#94A3B8;font-size:13px;margin-top:6px}
+.comparison-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.comparison-card{padding:16px;border-radius:12px;text-align:center}
+.comparison-card.standard{background:#F1F5F9;border:1px solid #E2E8F0}
+.comparison-card.enhanced{background:#ECFDF5;border:1px solid #A7F3D0}
+.cc-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.comparison-card.standard .cc-label{color:#64748B}
+.comparison-card.enhanced .cc-label{color:#059669}
+.cc-value{font-size:22px;font-weight:800}
+.comparison-card.standard .cc-value{color:#334155}
+.comparison-card.enhanced .cc-value{color:#059669}
+.cc-sub{font-size:11px;color:#94A3B8;margin-top:2px}
+.alloc-table{width:100%;border-collapse:collapse;margin-bottom:20px;font-size:13px}
+.alloc-table th{text-align:left;padding:10px 12px;background:#112240;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase}
+.alloc-table td{padding:10px 12px;border-bottom:1px solid #E2E8F0}
+.alloc-table tr:nth-child(even){background:#fff}
+.alloc-table tr:nth-child(odd){background:#F8FAFC}
+.pct{color:#0D9488;font-weight:700}
+.amt{text-align:right;font-weight:600;color:#334155}
+.bar-chart{margin-bottom:20px}
+.bar-row{display:flex;align-items:center;margin-bottom:8px;gap:10px}
+.bar-label{width:100px;font-size:11px;font-weight:600;color:#475569;text-align:right;flex-shrink:0}
+.bar-track{flex:1;height:22px;background:#E2E8F0;border-radius:6px;overflow:hidden}
+.bar-fill{height:100%;border-radius:6px;display:flex;align-items:center;padding-left:8px;font-size:11px;font-weight:700;color:#fff;min-width:40px}
+.bar-fill.y5{background:linear-gradient(90deg,#0D9488,#14B8A6)}
+.bar-fill.y7{background:linear-gradient(90deg,#2563EB,#3B82F6)}
+.bar-fill.y15{background:linear-gradient(90deg,#7C3AED,#8B5CF6)}
+.bar-fill.real{background:linear-gradient(90deg,#64748B,#94A3B8)}
+.disclaimer{font-size:11px;color:#94A3B8;line-height:1.5;padding:14px;background:#fff;border-radius:10px;border:1px solid #E2E8F0}
+.hidden{display:none}
+.irs-note{font-size:12px;color:#64748B;background:#F0F9FF;border:1px solid #BAE6FD;border-radius:8px;padding:10px 14px;margin-bottom:20px;line-height:1.5}
+.irs-note strong{color:#0369A1}
+#leadGate{position:fixed;inset:0;background:rgba(11,25,41,.92);backdrop-filter:blur(6px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px}
+.gate-card{background:#fff;border-radius:20px;padding:44px 40px;max-width:440px;width:100%;box-shadow:0 40px 80px rgba(0,0,0,.5);text-align:center}
+.gate-logo{font-size:13px;font-weight:700;color:#0D9488;text-transform:uppercase;letter-spacing:2px;margin-bottom:24px}
+.gate-headline{font-size:24px;font-weight:800;color:#0B1929;line-height:1.25;margin-bottom:10px}
+.gate-sub{font-size:14px;color:#64748B;line-height:1.6;margin-bottom:28px}
+.gate-bullets{text-align:left;margin-bottom:28px}
+.gate-bullets li{font-size:13px;color:#475569;padding:5px 0 5px 20px;position:relative;list-style:none}
+.gate-bullets li::before{content:"\2713";color:#0D9488;font-weight:700;position:absolute;left:0}
+.gate-input{width:100%;padding:13px 16px;border:2px solid #E2E8F0;border-radius:10px;font-size:15px;color:#1E293B;outline:none;margin-bottom:12px}
+.gate-input:focus{border-color:#0D9488;box-shadow:0 0 0 3px rgba(13,148,136,.1)}
+.gate-btn{width:100%;padding:15px;background:linear-gradient(135deg,#0D9488 0%,#14B8A6 100%);color:#fff;font-size:16px;font-weight:700;border:none;border-radius:10px;cursor:pointer;margin-top:4px}
+.gate-privacy{font-size:11px;color:#94A3B8;margin-top:14px}
+.gate-error{font-size:13px;color:#EF4444;margin-top:8px;display:none}
+</style>
+</head>
+<body>
+<div id="leadGate"><div class="gate-card"><div class="gate-logo">Action Ledgers</div><div class="gate-headline">Free Cost Segregation<br>Savings Calculator</div><div class="gate-sub">See exactly how much you could save with IRS-compliant cost segregation in under 60 seconds.</div><ul class="gate-bullets"><li>Instant estimates by property type</li><li>Bonus depreciation calculations (OBBBA 2026)</li><li>5-year cash flow advantage breakdown</li></ul><input type="text" id="gateName" class="gate-input" placeholder="Your Full Name"><input type="email" id="gateEmail" class="gate-input" placeholder="Your Email Address"><button class="gate-btn" onclick="submitGate()">Show My Free Results &#8594;</button><div class="gate-error" id="gateError">Please enter your name and a valid email.</div><div class="gate-privacy">&#128274; No spam. Unsubscribe anytime.</div></div></div>
+<div class="container"><header><h1>Cost Segregation <span>Savings Calculator</span></h1><p>Estimate your accelerated depreciation tax savings &mdash; IRS-compliant asset reclassification</p></header>
+<div class="card"><div class="card-sections"><div class="input-section"><div class="section-title"><div class="icon blue">&#x1F4C8;</div>Property Details</div>
+<div class="form-group"><label>Property Type</label><select id="propertyType"><option value="str" selected>Short-Term Rental (STR / Airbnb / VRBO)</option><option value="apartment">Apartment / Multifamily</option><option value="single_family">Single Family Rental (Long-Term)</option><option value="office">Office Building</option><option value="retail">Retail / Shopping Center</option><option value="restaurant">Restaurant</option><option value="hotel">Hotel / Motel</option><option value="warehouse">Warehouse / Industrial</option><option value="medical">Medical / Dental Office</option><option value="self_storage">Self-Storage Facility</option><option value="assisted_living">Assisted Living / Nursing</option><option value="auto_dealer">Auto Dealership</option><option value="mixed_use">Mixed-Use</option></select></div>
+<div class="form-group"><label>Building Cost / Depreciable Basis ($)</label><input type="text" id="buildingCost" placeholder="e.g. 1,500,000" value="1,500,000"></div>
+<div class="form-group"><label>Land Value ($) &mdash; excluded from depreciation</label><input type="text" id="landValue" placeholder="e.g. 300,000" value="300,000"></div>
+<div class="form-row"><div class="form-group"><label>Federal Tax Rate (%)</label><select id="taxRate"><option value="0.37" selected>37% (Top bracket)</option><option value="0.35">35%</option><option value="0.32">32%</option><option value="0.24">24%</option><option value="0.22">22%</option><option value="0.21">21% (Corporate)</option><option value="0.12">12%</option></select></div><div class="form-group"><label>State Tax Rate (%)</label><input type="text" id="stateRate" value="5"></div></div>
+<div class="form-row"><div class="form-group"><label>Recovery Period</label><select id="recoveryPeriod"><option value="27.5">27.5 Years (Residential)</option><option value="39">39 Years (Commercial)</option></select></div><div class="form-group"><label>Year Placed in Service</label><select id="yearPlaced"><option value="2025">2025</option><option value="2026" selected>2026</option><option value="2024">2024</option><option value="2023">2023</option><option value="2022">2022</option></select></div></div>
+<div class="bonus-toggle"><input type="checkbox" id="bonusDepr" checked><label for="bonusDepr">Apply Bonus Depreciation</label><span class="bonus-rate-info" id="bonusRateLabel">100%</span></div>
+<div class="irs-note"><strong>IRS Reg. 1.469-5T(f)(4):</strong> STR Advantage: Short-term rentals (avg stay &lt;7 days) are NOT subject to passive activity rules under IRC 469 if you materially participate &mdash; meaning cost seg losses can offset W-2/active income directly.</div>
+<button class="btn-calculate" onclick="calculate()">Calculate Tax Savings</button></div>
+<div class="results-section"><div class="section-title"><div class="icon green">&#x1F4B0;</div>Estimated Tax Savings</div><div id="resultsPlaceholder" style="text-align:center;padding:60px 20px;color:#94A3B8;"><div style="font-size:48px;margin-bottom:16px;">&#x1F50D;</div><p style="font-size:15px;font-weight:600;">Enter your property details</p><p style="font-size:13px;margin-top:6px;">Click Calculate Tax Savings to see your estimated savings</p></div>
+<div id="resultsContent" class="hidden"><div class="result-hero"><div class="label">Additional First-Year Tax Savings</div><div class="value" id="heroSavings">$0</div><div class="sub" id="heroSub">vs. standard straight-line depreciation</div></div>
+<div class="comparison-grid"><div class="comparison-card standard"><div class="cc-label">Standard Yr-1 Deduction</div><div class="cc-value" id="stdDeduction">$0</div><div class="cc-sub" id="stdSub">Straight-line</div></div><div class="comparison-card enhanced"><div class="cc-label">Enhanced Yr-1 Deduction</div><div class="cc-value" id="enhDeduction">$0</div><div class="cc-sub">With cost segregation</div></div></div>
+<div style="font-size:14px;font-weight:700;color:#112240;margin-bottom:12px;">Asset Reclassification Breakdown</div><div class="bar-chart" id="barChart"></div>
+<table class="alloc-table"><thead><tr><th>Asset Class</th><th>% of Basis</th><th style="text-align:right">Amount</th><th style="text-align:right">Yr-1 Deduction</th></tr></thead><tbody id="allocBody"></tbody></table>
+<div style="font-size:14px;font-weight:700;color:#112240;margin-bottom:12px;">5-Year Cash Flow Advantage</div><div class="comparison-grid" style="margin-bottom:16px;"><div class="comparison-card standard"><div class="cc-label">Standard 5-Yr Deductions</div><div class="cc-value" id="std5yr">$0</div></div><div class="comparison-card enhanced"><div class="cc-label">Enhanced 5-Yr Deductions</div><div class="cc-value" id="enh5yr">$0</div></div></div>
+<div class="disclaimer"><strong>Disclaimer:</strong> Estimates only, based on typical industry allocation percentages. Not tax advice. Consult a qualified CPA. Bonus depreciation: 100% for 2023-2026 (OBBBA).</div></div></div></div></div></div>
+<script>
+var WEBHOOK_URL="https://script.google.com/macros/s/AKfycbyP_5IGWxp_8Lt8iZvHGM-R9taixJS4MjYQde33kqXuBSlQfeDUmM-Ys4rvLdWU7KzR/exec";
+function submitGate(){var name=document.getElementById("gateName").value.trim();var email=document.getElementById("gateEmail").value.trim();var err=document.getElementById("gateError");err.style.display="none";if(!name||!email||!/^[^@]+@[^@]+\.[^@]+$/.test(email)){err.style.display="block";return;}var btn=document.querySelector(".gate-btn");btn.textContent="Loading...";btn.disabled=true;fetch(WEBHOOK_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:name,email:email,timestamp:new Date().toISOString(),source:"Cost Segregation Calculator",pageUrl:window.location.href,userAgent:navigator.userAgent})}).catch(function(){});document.getElementById("leadGate").style.display="none";calculate();}
+var AL={str:{y5:25,y7:5,y15:12},apartment:{y5:15,y7:3,y15:12},single_family:{y5:12,y7:2,y15:10},office:{y5:12,y7:3,y15:10},retail:{y5:14,y7:3,y15:12},restaurant:{y5:25,y7:4,y15:15},hotel:{y5:20,y7:5,y15:13},warehouse:{y5:10,y7:2,y15:15},medical:{y5:18,y7:5,y15:10},self_storage:{y5:10,y7:2,y15:18},assisted_living:{y5:18,y7:4,y15:12},auto_dealer:{y5:20,y7:5,y15:14},mixed_use:{y5:15,y7:3,y15:12}};
+function getBR(y){y=parseInt(y);if(y<=2026)return 1;if(y===2027)return .8;if(y===2028)return .6;if(y===2029)return .4;if(y===2030)return .2;return 0;}
+function pc(s){return parseFloat(s.replace(/[^0-9.]/g,""))||0;}
+function fmt(n){return"$"+Math.round(n).toLocaleString("en-US");}
+function fp(n){return n.toFixed(1)+"%";}
+document.getElementById("yearPlaced").addEventListener("change",function(){document.getElementById("bonusRateLabel").textContent=(getBR(this.value)*100)+"%";});
+document.getElementById("propertyType").addEventListener("change",function(){document.getElementById("recoveryPeriod").value=["apartment","single_family","str"].includes(this.value)?"27.5":"39";});
+function calculate(){var pt=document.getElementById("propertyType").value,tc=pc(document.getElementById("buildingCost").value),lv=pc(document.getElementById("landValue").value),fr=parseFloat(document.getElementById("taxRate").value),sr=parseFloat(document.getElementById("stateRate").value)/100,ry=parseFloat(document.getElementById("recoveryPeriod").value),yp=document.getElementById("yearPlaced").value,ab=document.getElementById("bonusDepr").checked,db=Math.max(tc-lv,0),cr=fr+sr,br=ab?getBR(yp):0,al=AL[pt];
+var a5=db*(al.y5/100),a7=db*(al.y7/100),a15=db*(al.y15/100),rp=100-al.y5-al.y7-al.y15,ar=db*(rp/100),sr1=ry===27.5?.03636:.02564,sd=db*sr1;
+var d5=a5*(br+(1-br)*.20),d7=a7*(br+(1-br)*.1429),d15=a15*(br+(1-br)*.05),dr=ar*sr1,ed=d5+d7+d15+dr,ts=(ed-sd)*cr;
+var s5=db*sr1*5,e5=br===1?(a5+a7+a15+ar*sr1*5):(a5+a7*(5/7)+a15*(5*.05+br*(1-5*.05))+ar*sr1*5);
+document.getElementById("resultsPlaceholder").classList.add("hidden");document.getElementById("resultsContent").classList.remove("hidden");
+document.getElementById("heroSavings").textContent=fmt(ts);document.getElementById("heroSub").textContent=fp(cr*100)+" combined rate x "+fmt(ed-sd)+" additional deductions";
+document.getElementById("stdDeduction").textContent=fmt(sd);document.getElementById("stdSub").textContent=ry+"-year straight-line";document.getElementById("enhDeduction").textContent=fmt(ed);
+document.getElementById("std5yr").textContent=fmt(s5);document.getElementById("enh5yr").textContent=fmt(e5);
+var bars=[{l:"5-Year",p:al.y5,c:"y5"},{l:"7-Year",p:al.y7,c:"y7"},{l:"15-Year",p:al.y15,c:"y15"},{l:"Real Property",p:rp,c:"real"}];
+document.getElementById("barChart").innerHTML=bars.map(function(b){return'<div class="bar-row"><div class="bar-label">'+b.l+'</div><div class="bar-track"><div class="bar-fill '+b.c+'" style="width:'+Math.max(b.p,5)+'%">'+b.p+'%</div></div></div>';}).join("");
+var rows=[{n:"5-Year Personal Property",p:al.y5,a:a5,d:d5},{n:"7-Year Personal Property",p:al.y7,a:a7,d:d7},{n:"15-Year Land Improvements",p:al.y15,a:a15,d:d15},{n:ry+"-Year Real Property",p:rp,a:ar,d:dr}];
+document.getElementById("allocBody").innerHTML=rows.map(function(r){return"<tr><td>"+r.n+"</td><td class='pct'>"+fp(r.p)+"</td><td class='amt'>"+fmt(r.a)+"</td><td class='amt'>"+fmt(r.d)+"</td></tr>";}).join("")+'<tr style="font-weight:800;background:#ECFDF5;"><td>TOTAL</td><td class="pct">100%</td><td class="amt">'+fmt(db)+'</td><td class="amt" style="color:#059669;">'+fmt(ed)+'</td></tr>';}
+</script>
+</body>
+</html>
